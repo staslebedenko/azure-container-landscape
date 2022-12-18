@@ -659,7 +659,7 @@ public async Task<IActionResult> Get(CancellationToken cts)
 And after all this changes we can deploye and observe results in Azure.
 
 
-## Step 7. Migration to Azure Kubernetes Service and DAPR component switch
+## Step 7. Migration to Azure Kubernetes Service and DAPR
 
 As our application grows, Container Apps might be not enough, so the essential migration path is to Azure Kubernetes Service
 
@@ -1072,7 +1072,7 @@ If you are closely following this tutorial by yourself, there is a mistake in on
 ! Make sure that you changed service bus topic name in Visual Studio
 
 
-## Step 7. AKS Component switch and migration to on-premises.
+## Step 8. AKS Component switch and migration to on-premises.
 
 In case your session to Azure or container registry is timed out, please login again.
 
