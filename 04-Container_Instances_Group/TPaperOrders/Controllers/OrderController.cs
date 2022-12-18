@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text.Json;
 
 namespace TPaperOrders
 {
@@ -16,7 +16,9 @@ namespace TPaperOrders
 
         private readonly IHttpClientFactory _clientFactory;
 
-        public OrderController(ILogger<OrderController> logger, IHttpClientFactory clientFactory)
+        public OrderController(
+            ILogger<OrderController> logger,
+            IHttpClientFactory clientFactory)
         {
             _logger = logger;
             _clientFactory = clientFactory;
@@ -30,7 +32,7 @@ namespace TPaperOrders
 
             var order = new EdiOrder
             {
-                Id = 1,
+                Id = 33,
                 ClientId = 1,
                 DeliveryId = 1,
                 Notes = "Test order",
@@ -38,23 +40,21 @@ namespace TPaperOrders
                 Quantity = quantity
             };
 
+            DeliveryModel savedDelivery = await CreateDeliveryForOrder(order, cts);
 
-            Delivery savedDelivery = await CreateDeliveryForOrder(order, cts);
-
-            string responseMessage = $"Accepted EDI message {order.Id} and created delivery {order.Id}";
+            string responseMessage = $"Accepted EDI message {order.Id} and created delivery {savedDelivery?.Id}";
 
             return new OkObjectResult(responseMessage);
         }
 
-        private async Task<Delivery> CreateDeliveryForOrder(EdiOrder savedOrder, CancellationToken cts)
+        private async Task<DeliveryModel> CreateDeliveryForOrder(EdiOrder savedOrder, CancellationToken cts)
         {
-            string url =
-                $"http://tpaperorders:80/api/delivery/create/{savedOrder.ClientId}/{savedOrder.Id}/{savedOrder.ProductCode}/{savedOrder.Quantity}";
+            string url = $"http://tpaperdelivery:80/api/delivery/create/{savedOrder.ClientId}/{savedOrder.Id}/{savedOrder.ProductCode}/{savedOrder.Quantity}";
 
             using var httpClient = _clientFactory.CreateClient();
             var uriBuilder = new UriBuilder(url);
 
-            using var result = await httpClient.GetAsync(uriBuilder.Uri);
+            using var result = await httpClient.GetAsync(uriBuilder.Uri, cts);
             if (!result.IsSuccessStatusCode)
             {
                 return null;
@@ -62,7 +62,7 @@ namespace TPaperOrders
 
             var content = await result.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<Delivery>(content);
+            return JsonConvert.DeserializeObject<DeliveryModel>(content);
         }
     }
 }

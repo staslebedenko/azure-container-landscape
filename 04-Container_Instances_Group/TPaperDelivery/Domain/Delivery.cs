@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TPaperOrders
+namespace TPaperDelivery
 {
     public class Delivery
     {

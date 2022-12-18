@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 
-namespace TPaperOrders
+namespace TPaperDelivery
 {
     public class Startup
     {
@@ -24,7 +24,7 @@ namespace TPaperOrders
         {
             services.AddLogging(options =>
             {
-                options.AddFilter("TPaperOrders", LogLevel.Information);
+                options.AddFilter("TPaperDelivery", LogLevel.Information);
             });
 
             services.AddOptions<ProjectOptions>()

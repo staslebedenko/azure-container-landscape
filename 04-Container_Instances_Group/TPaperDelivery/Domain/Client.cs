@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TPaperOrders
+namespace TPaperDelivery
 {
     public class Client
     {

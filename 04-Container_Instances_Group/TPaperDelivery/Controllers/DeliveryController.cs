@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 
-namespace TPaperOrders
+namespace TPaperDelivery
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -21,7 +22,6 @@ namespace TPaperOrders
             int number,
             CancellationToken cts)
         {
-
             var newDelivery = new Delivery
             {
                 Id = 0,
@@ -29,11 +29,18 @@ namespace TPaperOrders
                 EdiOrderId = ediOrderId,
                 Number = number,
                 ProductId = 1,
-                ProductCode = 1,
+                ProductCode = 33,
                 Notes = "Prepared for shipment"
             };
 
             return new OkObjectResult(newDelivery);
+        }
+
+        [HttpGet]
+        [Route("get")]
+        public async Task<IActionResult> Get(CancellationToken cts)
+        {
+            return new OkObjectResult("Started");
         }
     }
 }
