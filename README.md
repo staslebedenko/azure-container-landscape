@@ -236,5 +236,11 @@ And finally create a new container instance from our container in Azure Containe
 
 
 Let's begin with local CMD promt and pushing of the container to Azure
+!!!Use additional command az account set --subscription 95cd9078f8c to deploy resources into the correct subscription
+```cmd
+az login
 
+az account show
+az acr login --name contlandregistry
+```
 
