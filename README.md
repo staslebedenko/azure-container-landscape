@@ -383,3 +383,8 @@ docker compose up
 
 For extra details you can this refence 
 https://learn.microsoft.com/en-us/azure/container-instances/tutorial-docker-compose
+
+
+
+## Step 5. Azure Container Apps
+
