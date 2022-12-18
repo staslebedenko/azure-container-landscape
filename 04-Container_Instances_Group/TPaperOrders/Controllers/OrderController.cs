@@ -49,7 +49,7 @@ namespace TPaperOrders
 
         private async Task<DeliveryModel> CreateDeliveryForOrder(EdiOrder savedOrder, CancellationToken cts)
         {
-            string url = $"http://tpaperdelivery:80/api/delivery/create/{savedOrder.ClientId}/{savedOrder.Id}/{savedOrder.ProductCode}/{savedOrder.Quantity}";
+            string url = $"http://contlandregistry.northeurope.azurecontainer.io:80/api/delivery/create/{savedOrder.ClientId}/{savedOrder.Id}/{savedOrder.ProductCode}/{savedOrder.Quantity}";
 
             using var httpClient = _clientFactory.CreateClient();
             var uriBuilder = new UriBuilder(url);

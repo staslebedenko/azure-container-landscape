@@ -341,3 +341,18 @@ This is a quite exotic case, because usage of a container with a sidecar or seve
 
 But you should be aware about this possibilty, so you can leverage simple two service scenario as fast and easy as possible.
 
+let's login to our container registry from a step 4 folder
+```cmd
+az login
+
+az account show
+az acr login --name contlandregistry
+```
+
+Not it is time to authenticat docker to your azure subscription and create context for resource group from a command line inside step 4 solution folder
+
+```
+docker login azure
+docker context create aci instancescontext
+```
+
