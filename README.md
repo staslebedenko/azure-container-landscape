@@ -244,3 +244,16 @@ az account show
 az acr login --name contlandregistry
 ```
 
+Open Visual studio and re-build your project in the Release mode, check with command line that the new container with the latest tag is created
+
+Set a next version in manifest and command below before execution, check docker images command
+
+```
+docker tag tpaperorders:latest contlandregistry.azurecr.io/tpaperorders:v1
+docker images
+```
+
+then push container to the container registry with
+```
+docker push contlandregistry.azurecr.io/tpaperorders:v1
+```
