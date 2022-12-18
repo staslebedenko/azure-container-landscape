@@ -121,6 +121,14 @@ instrumentationKey=$(az monitor app-insights component show --resource-group $gr
 # Azure Container Apps
 #----------------------------------------------------------------------------------
 
+instancesGroupName=cont-land-instances$postfix
+location=northeurope
+az group create --name $instancesGroupName --location $location
+
+#----------------------------------------------------------------------------------
+# Azure Container Apps
+#----------------------------------------------------------------------------------
+
 az extension add --name containerapp --upgrade
 
 az provider register --namespace Microsoft.App
@@ -264,4 +272,41 @@ Check if image is in the container registry
 az acr repository list --name contlandregistry --output table
 ```
 
-Then we are moving to the creation of 
+Then we are moving to the creation of service principal for Container registry via Azure Portal Bash console
+
+```
+registry=contlandregistry
+principalName=registryPrincipal
+
+registryId=$(az acr show --name $registry --query "id" --output tsv)
+
+regPassword=$(az ad sp create-for-rbac --name $principalName --scopes $registryId --role acrpull --query "password" --output tsv)
+regUser=$(az ad sp list --display-name $principalName --query "[].appId" --output tsv)
+
+echo "Service principal ID: $regUser"
+echo "Service principal password: $regPassword"
+```
+
+The output of the following script should containe login and password
+
+```
+Service principal ID: 277a0a62-9fb0
+Service principal password: iUe44444444444444444444444a2r
+```
+
+Then we can continue from a local command line or azure portal.
+
+Getting the login server
+
+```
+az acr show --name contlandregistry --query loginServer
+```
+ output will be contlandregistry.azurecr.io
+
+So we adding the correct values to our application string
+The resource group cont-land-instances with postfix created earlier.
+--dns-name-label is your unique public name, so you can create it with your container registry name and postfix.
+
+```
+az container create --resource-group cont-land-instances --name cont-land-aci --image contlandregistry.azurecr.io/tpaperorders:v1 --cpu 1 --memory 1 --registry-login-server contlandregistry.azurecr.io --registry-username 277a0a62-9fb0 --registry-password iUe44444444444444444444444a2r --ip-address Public --dns-name-label contlandregistry --ports 80
+```
