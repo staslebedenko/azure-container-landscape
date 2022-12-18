@@ -201,3 +201,40 @@ printf "\n\nRun string below in local cmd prompt to assign secret to environment
 
 echo "Update open-telemetry-collector-appinsights.yaml in Step 5 End => <INSTRUMENTATION-KEY> value with:  " $instrumentationKey
 ```
+
+## Step 1. Local containerisation
+
+First we adding docker containerization via context menu of each project.
+<img width="489" alt="image" src="https://user-images.githubusercontent.com/36765741/204159578-5e72e255-928d-4b75-bd67-3b9f8a23e48f.png">
+
+Then we adding orchestration support via docker compose again to the each project
+
+
+If you decide to add storage at this step, then you should add the environment variable file to the root folder, so secrets will be shared between service for simplicity
+<img width="183" alt="image" src="https://user-images.githubusercontent.com/36765741/204159631-754bfbfe-7052-4e8d-a286-c71347266586.png">
+
+Then we changing order controller url for communication inside docker
+```
+            string url =
+                $"http://tpaperorders:80/api/delivery/create/{savedOrder.ClientId}/{savedOrder.Id}/{savedOrder.ProductCode}/{savedOrder.Quantity}";
+```
+And from this point you should run solution in debug with docker compose option
+![image](https://user-images.githubusercontent.com/36765741/204160258-35c356ff-931b-424c-9bac-6d261f432351.png)
+
+!! Be aware, if you have docker build exceptions in Visual studio with errors related to the File system, there is a need to configure docker desktop. 
+Open Docker desktop => configuration => Resources => File sharing => Add your project folder or entire drive, C:\ for example. Dont forget to remove drive setting later on.
+
+!! When you try to start the same solution from the new folder, you might need to stop and delete containers via docker compose.
+
+## Step 2. Azure Container instancs deploy.
+
+The first thing is we need to login locally to Azure and authenticate to the newly created Azure Container Registry, build, tag and push container there.
+
+Then we will create identity for container registry.
+
+And finally create a new container instance from our container in Azure Container Registry
+
+
+Let's begin with local CMD promt and pushing of the container to Azure
+
+
