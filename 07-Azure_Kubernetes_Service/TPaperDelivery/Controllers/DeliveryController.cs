@@ -21,9 +21,8 @@ namespace TPaperDelivery
             _logger = logger;
         }
 
-        [Topic("pubsubsbus", "createdelivery")]
+        [Topic("pubsub-super-new", "aksdelivery")]
         [HttpPost]
-        [Route("createdelivery")]
         public async Task<IActionResult> ProcessEdiOrder(Delivery delivery)
         {
             _logger.LogWarning("Triggered method");

@@ -68,7 +68,7 @@ namespace TPaperOrders
                 Notes = "Prepared for shipment"
             };
 
-            await _daprClient.PublishEventAsync<DeliveryModel>("pubsubsbus", "createdelivery", newDelivery, cts);
+            await _daprClient.PublishEventAsync<DeliveryModel>("pubsub-super-new", "aksdelivery", newDelivery, cts);
 
             return newDelivery;
         }
