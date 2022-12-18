@@ -454,3 +454,206 @@ And please allow Insecure connections for Delivery service via ingress configura
 
 We should use the full path to make initial call to order API and see results
 tpaperorders-app-20221115224238--k1osno8.agreeablecoast-99a44d4d.northeurope.azurecontainerapps.io/api/order/create/1
+
+
+## Step 6. Container Apps with DAPR
+
+And initialize DAPR for the local development
+
+```
+dapr init
+```
+We can check results(container list) by opening Docker Desktop or running command docker ps.
+
+Lets update our solution compose file with DAPR sidecar containers, for production you should replace DAPR latest with particular version to avoid problems with auto updates.
+
+```
+version: '3.4'
+
+services:
+  tpaperdelivery:
+    image: ${DOCKER_REGISTRY-}tpaperdelivery
+    build:
+      context: .
+      dockerfile: TPaperDelivery/Dockerfile
+    ports:
+      - "52000:50001"
+    env_file:
+      - settings.env
+      
+  tpaperdelivery-dapr:
+    image: "daprio/daprd:latest"
+    command: [ "./daprd", "-app-id", "tpaperdelivery", "-app-port", "80" ]
+    depends_on:
+      - tpaperdelivery
+    network_mode: "service:tpaperdelivery"
+      
+  tpaperorders:
+    image: ${DOCKER_REGISTRY-}tpaperorders
+    build:
+      context: .
+      dockerfile: TPaperOrders/Dockerfile
+    ports:
+      - "51000:50001"
+    env_file:
+      - settings.env
+
+  tpaperorders-dapr:
+    image: "daprio/daprd:latest"
+    command: [ "./daprd", "-app-id", "tpaperorders", "-app-port", "80" ]
+    depends_on:
+      - tpaperorders
+    network_mode: "service:tpaperorders"      
+```
+
+Now we need to make adjustments to PaperOrders project, by adding DAPR dependency
+
+```
+<PackageReference Include="Dapr.AspNetCore" Version="1.9.0" />
+```
+Adding it to the Startup 
+
+```
+services.AddControllers().AddDapr();
+```
+And replacing method CreateDeliveryForOrder with http endpoint invocation via DAPR client
+
+```
+        private async Task<DeliveryModel> CreateDeliveryForOrder(EdiOrder savedOrder, CancellationToken cts)
+        {
+            string serviceName = "tpaperdelivery";
+            string route = $"api/delivery/create/{savedOrder.ClientId}/{savedOrder.Id}/{savedOrder.ProductCode}/{savedOrder.Quantity}";
+
+            DeliveryModel savedDelivery = await _daprClient.InvokeMethodAsync<DeliveryModel>(
+                                          HttpMethod.Get, serviceName, route, cts);
+
+            return savedDelivery;
+        }
+        }
+```
+
+If we will start a service and invoke a new order via http://localhost:52043/api/order/create/1 we can see that everything working as usual, except that we got additional container sidecars for each service 
+
+This way we leveraged service locator provided by dapr, it is still a http communication between services, but now you can skip usage of evnironment variable and routing will be a responsibility of DAPR.
+
+### Now we will need to add a PubSub component and DAPR component 
+
+First we preparing simplified DAPR pubsub yaml manifest for pubsub(available in yaml folder of Step 2 End)
+
+```
+componentType: pubsub.azure.servicebus
+version: v1
+metadata:
+- name: connectionString
+  secretRef: sbus-connectionstring
+secrets:
+- name: sbus-connectionstring
+  value: super-secret
+```
+
+And then deploying it to Azure via local azure CLI or portal console with file upload. Locally you should do az login first. 
+The pubsub component would be pubsubsbus, we will use it later in code.
+```
+az containerapp env dapr-component set --resource-group dcc-modern-containerapp --name dcc-environment --dapr-component-name pubsubsbus --yaml "pubsubsbus.yaml"
+```
+
+Important thing, we are adding this DAPR component for entire environment, so it will be available for all apps, also we not included scopes at this step, something for the future.
+
+Afterwards there is a need to put the correct Azure Service Bus connection string on the portal via Container App environment
+![image](https://user-images.githubusercontent.com/36765741/202546502-342421d4-c14f-4f2f-8118-df220f752232.png)
+
+One important this, please add the following section to your service bus connection string ";EntityPath=createdelivery"
+"Endpoint=sb://dccmodern2141.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=CGnGz1L+Jw=;EntityPath=createdelivery"
+
+Now let's add DAPR pub/sub components to our solution.
+
+Change CreateDeliveryForOrder in TPaperOrders project to the following code that uses DAPR pubsub
+```
+        private async Task<DeliveryModel> CreateDeliveryForOrder(EdiOrder savedOrder, CancellationToken cts)
+        {
+            var newDelivery = new DeliveryModel
+            {
+                Id = 0,
+                ClientId = savedOrder.ClientId,
+                EdiOrderId = savedOrder.Id,
+                Number = savedOrder.Quantity,
+                ProductId = 0,
+                ProductCode = savedOrder.ProductCode,
+                Notes = "Prepared for shipment"
+            };
+
+            await _daprClient.PublishEventAsync<DeliveryModel>("pubsub", "createdelivery", newDelivery, cts);
+
+            return newDelivery;
+        }
+```
+
+Adding DAPR dependency
+```
+ <PackageReference Include="Dapr.AspNetCore" Version="1.9.0" />
+```
+
+Change method CreateDeliveryForOrder in OrderController to
+```
+        private async Task<DeliveryModel> CreateDeliveryForOrder(EdiOrder savedOrder, CancellationToken cts)
+        {
+            var newDelivery = new DeliveryModel
+            {
+                Id = 0,
+                ClientId = savedOrder.ClientId,
+                EdiOrderId = savedOrder.Id,
+                Number = savedOrder.Quantity,
+                ProductId = 0,
+                ProductCode = savedOrder.ProductCode,
+                Notes = "Prepared for shipment"
+            };
+
+            await _daprClient.PublishEventAsync<DeliveryModel>("pubsubsbus", "createdelivery", newDelivery, cts);
+
+            return newDelivery;
+        }
+```
+
+And most importantly change double to decimal in Delivery model Number field
+
+
+For TPaperDelivery project, update Startup class
+```
+services.AddControllers().AddDapr();
+```
+and 
+```
+app.UseAuthorization();
+
+app.UseCloudEvents();
+
+app.UseOpenApi();
+app.UseSwaggerUi3();
+
+app.UseEndpoints(endpoints =>
+{
+endpoints.MapSubscribeHandler();
+endpoints.MapControllers();
+});
+```
+
+And finally make a proper signature on ProcessEdiOrder endpoint
+```
+[Topic("pubsubsbus", "createdelivery")]
+[HttpPost]
+[Route("createdelivery")]
+```
+
+And add method to enumerate all stored deliveries
+```
+[HttpGet]
+[Route("deliveries")]
+public async Task<IActionResult> Get(CancellationToken cts)
+{
+    Delivery[] registeredDeliveries = await _context.Delivery.ToArrayAsync(cts);
+
+    return new OkObjectResult(registeredDeliveries);
+}
+```
+
+And after all this changes we can deploye and observe results in Azure.
