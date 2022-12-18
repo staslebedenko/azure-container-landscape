@@ -7,7 +7,7 @@ namespace TPaperOrders
     {
         public int Id { get; set; }
 
-        public double Number { get; set; }
+        public decimal Number { get; set; }
 
         public int ClientId { get; set; }
 

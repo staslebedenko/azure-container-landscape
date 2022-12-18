@@ -5,7 +5,7 @@
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>a37a62f3-b5a9-44ab-b964-7e92b6ca7256</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/api/delivery/get</DockerServiceUrl>
+    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/api/delivery/health</DockerServiceUrl>
     <DockerServiceName>tpaperdelivery</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>

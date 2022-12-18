@@ -1,4 +1,6 @@
+using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -16,16 +18,16 @@ namespace TPaperOrders
 
         private readonly ILogger<OrderController> _logger;
 
-        private readonly IHttpClientFactory _clientFactory;
+        private readonly DaprClient _daprClient;
 
         public OrderController(
             PaperDbContext context,
             ILogger<OrderController> logger,
-            IHttpClientFactory clientFactory)
+            DaprClient daprClient)
         {
             _context = context;
             _logger = logger;
-            _clientFactory = clientFactory;
+            _daprClient = daprClient ?? throw new ArgumentNullException(nameof(daprClient));
         }
 
         [HttpGet]
@@ -55,23 +57,22 @@ namespace TPaperOrders
 
         private async Task<DeliveryModel> CreateDeliveryForOrder(EdiOrder savedOrder, CancellationToken cts)
         {
-            string baseUrl = Environment.GetEnvironmentVariable("DeliveryUrl");
-            string url = $"{baseUrl}/api/delivery/create/{savedOrder.ClientId}/{savedOrder.Id}/{savedOrder.ProductCode}/{savedOrder.Quantity}";
-
-            using var httpClient = _clientFactory.CreateClient();
-            var uriBuilder = new UriBuilder(url);
-
-            using var result = await httpClient.GetAsync(uriBuilder.Uri, cts);
-            if (!result.IsSuccessStatusCode)
+            var newDelivery = new DeliveryModel
             {
-                return null;
-            }
+                Id = 0,
+                ClientId = savedOrder.ClientId,
+                EdiOrderId = savedOrder.Id,
+                Number = savedOrder.Quantity,
+                ProductId = 0,
+                ProductCode = savedOrder.ProductCode,
+                Notes = "Prepared for shipment"
+            };
 
-            var content = await result.Content.ReadAsStringAsync();
+            await _daprClient.PublishEventAsync<DeliveryModel>("pubsubsbus", "createdelivery", newDelivery, cts);
 
-            return JsonConvert.DeserializeObject<DeliveryModel>(content);
+            return newDelivery;
         }
-        
+
         [HttpGet]
         [Route("health")]
         public async Task<IActionResult> Health(CancellationToken cts)

@@ -50,7 +50,7 @@ namespace TPaperOrders
 
             PaperDbContext.ExecuteMigrations(paperConnectionString);
 
-            services.AddControllers();
+            services.AddControllers().AddDapr();
             services.AddHttpClient();
         }
 

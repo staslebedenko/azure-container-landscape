@@ -50,7 +50,7 @@ namespace TPaperDelivery
 
             DeliveryDbContext.ExecuteMigrations(deliveryConnectionString);
 
-            services.AddControllers();
+            services.AddControllers().AddDapr();
             services.AddHttpClient();
         }
 
@@ -66,11 +66,14 @@ namespace TPaperDelivery
 
             app.UseAuthorization();
 
+            app.UseCloudEvents();
+
             app.UseOpenApi();
             app.UseSwaggerUi3();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapSubscribeHandler();
                 endpoints.MapControllers();
             });
         }
