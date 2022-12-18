@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: tpaperorders
-          image: dccmodernregistry.azurecr.io/tpaperorders:v2
+          image: dccmodernregistry.azurecr.io/tpaperorders:v9
           imagePullPolicy: Always
           ports:
             - containerPort: 80

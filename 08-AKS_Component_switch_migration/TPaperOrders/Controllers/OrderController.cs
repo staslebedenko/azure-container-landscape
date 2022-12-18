@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,7 +51,12 @@ namespace TPaperOrders
 
             DeliveryModel savedDelivery = await CreateDeliveryForOrder(savedOrder, cts);
 
-            string responseMessage = $"Accepted EDI message {order.Id} and created delivery {savedDelivery?.Id}";
+
+            Dictionary<string, string> secrets = await _daprClient.GetSecretAsync("azurekeyvault", "RandomSecret");
+
+            string superSecret = secrets["RandomSecret"];
+
+            string responseMessage = $"Accepted EDI message {order.Id} and created delivery {savedDelivery?.Id} with super secret{superSecret}";
 
             return new OkObjectResult(responseMessage);
         }
@@ -68,7 +74,7 @@ namespace TPaperOrders
                 Notes = "Prepared for shipment"
             };
 
-            await _daprClient.PublishEventAsync<DeliveryModel>("pubsub-super-new", "aksdelivery", newDelivery, cts);
+            await _daprClient.PublishEventAsync<DeliveryModel>("pubsub-rabbitmq", "aksdelivery", newDelivery, cts);
 
             return newDelivery;
         }

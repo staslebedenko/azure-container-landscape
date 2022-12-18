@@ -49,7 +49,9 @@ namespace TPaperDelivery
             services.AddSwaggerDocument();
 
             DeliveryDbContext.ExecuteMigrations(deliveryConnectionString);
-
+            //services.AddApplicationInsightsTelemetry("e2b3302f-7b57-4165-8185-7b799ab67b89");
+            //services.AddApplicationInsightsKubernetesEnricher();
+            
             services.AddControllers().AddDapr();
             services.AddHttpClient();
         }
