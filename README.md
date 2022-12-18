@@ -40,8 +40,8 @@ postfix=$RANDOM
 # Database infrastructure
 #----------------------------------------------------------------------------------
 
-export dbResourceGroup=dcc-modern-data$postfix
-export dbServername=dcc-modern-sql$postfix
+export dbResourceGroup=cont-land-data$postfix
+export dbServername=cont-land-sql$postfix
 export dbPoolname=dbpool
 export dbAdminlogin=FancyUser3
 export dbAdminpassword=Sup3rStr0ng52$postfix
@@ -79,9 +79,9 @@ SqlPaperPassword=$dbAdminpassword
 #----------------------------------------------------------------------------------
 
 location=northeurope
-groupName=dcc-modern-cluster$postfix
-clusterName=dcc-modern-cluster$postfix
-registryName=dccmodernregistry$postfix
+groupName=cont-land-cluster$postfix
+clusterName=cont-land-cluster$postfix
+registryName=contlandregistry$postfix
 
 
 az group create --name $groupName --location $location
@@ -97,10 +97,10 @@ az aks enable-addons --addon monitoring --name $clusterName --resource-group $gr
 # Service bus queue
 #----------------------------------------------------------------------------------
 
-groupName=dcc-modern-extras$postfix
+groupName=cont-land-extras$postfix
 location=northeurope
 az group create --name $groupName --location $location
-namespaceName=dccModern$postfix
+namespaceName=contLand$postfix
 queueName=createdelivery
 
 az servicebus namespace create --resource-group $groupName --name $namespaceName --location $location
@@ -112,7 +112,7 @@ serviceBusString=$(az servicebus namespace authorization-rule keys list --resour
 # Application insights
 #----------------------------------------------------------------------------------
 
-insightsName=dccmodernlogs$postfix
+insightsName=contLandlogs$postfix
 az monitor app-insights component create --resource-group $groupName --app $insightsName --location $location --kind web --application-type web --retention-time 120
 
 instrumentationKey=$(az monitor app-insights component show --resource-group $groupName --app $insightsName --query  "instrumentationKey" --output tsv)
@@ -127,10 +127,10 @@ az provider register --namespace Microsoft.App
 
 az provider register --namespace Microsoft.OperationalInsights
 
-acaGroupName=dcc-modern-containerapp$postfix
+acaGroupName=cont-land-containerapp$postfix
 location=northeurope
-logAnalyticsWorkspace=dcc-modern-logs$postfix
-containerAppsEnv=dcc-environment$postfix
+logAnalyticsWorkspace=cont-land-logs$postfix
+containerAppsEnv=contl-environment$postfix
 
 az group create --name $acaGroupName --location $location
 
@@ -174,7 +174,7 @@ az containerapp env show --resource-group $acaGroupName --name $containerAppsEnv
 # Azure Key Vault with secrets assignment and access setup
 #----------------------------------------------------------------------------------
 
-keyvaultName=dcc-modern$postfix
+keyvaultName=cont-land$postfix
 principalName=vaultadmin
 principalCertName=vaultadmincert
 
