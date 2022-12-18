@@ -388,3 +388,69 @@ https://learn.microsoft.com/en-us/azure/container-instances/tutorial-docker-comp
 
 ## Step 5. Azure Container Apps
 
+As the initial step we will update our application with SQL database code, please double check difference between Step 5 initial commit and database update commit
+Don't forget to add database secrets to the local.env secret file located in the root directory.
+
+Then we will publish our project to the container apps environment via visual studio. You can also setup deployment with GitHub actions.
+
+Deployment to Container Apps via Visual studio
+Configuration for GitHub actions deployments
+
+![image](https://user-images.githubusercontent.com/36765741/202031699-2787a2b0-2368-45e5-b37c-76e1550b78d7.png)
+
+![image](https://user-images.githubusercontent.com/36765741/202032521-3797b950-d41f-4b43-8055-70ca53c3fd70.png)
+
+![image](https://user-images.githubusercontent.com/36765741/202032630-01472083-e44d-4026-8e23-1bf2f82b6dfd.png)
+
+![image](https://user-images.githubusercontent.com/36765741/202032687-b1cda810-8675-4120-9b80-28c0fc943087.png)
+
+![image](https://user-images.githubusercontent.com/36765741/202032789-d6b845a6-9608-4b66-878b-6bea22fab75e.png)
+
+![image](https://user-images.githubusercontent.com/36765741/202032840-2d215c00-cb11-402a-8983-56bffb511add.png)
+
+And after a brief look with can figure out that deployment has failed
+![image](https://user-images.githubusercontent.com/36765741/202293909-ab636822-5c15-4537-b58d-18c35957e911.png)
+
+after a click on the failed deployment, we need to select Console logs and see results in the log analytics
+
+After expanding the latest log entry, we can see Unhandled exception. System.ArgumentNullException: Value cannot be null. (Parameter 'Password')
+Which means that we not configured secrets for our application.
+
+Let's do a quick fix by adding secrets to the Container App settings (KeyVault we will use later)
+![image](https://user-images.githubusercontent.com/36765741/202296088-7dc6f0cb-538a-4e2a-a459-5151c2038a01.png)
+
+After this changes we re-deploying our application and getting another error Cannot open server 'dcc-modern-sql' requested by the login. Client with IP address
+
+There is a two ways to solve this problem, the first is to use Azure Connector preview and make a direct link to database with secrets managed by KeyVault, or add IP address to exceptions. Or you can create a Container app environment with VNet from the start and use network endpoint of Azure SQL
+
+After this changes our application successfuly provisioned.
+
+There is a limit of one ingress per one container app, along with the reccomendation to host two containers only in case of workload + sidecar.
+Moreover Visual studion will not let you easily do so.
+
+So we need to deploy a delivery app as a separate app and configure urls for service to service communications.
+
+We will need to get a full URL of Delivery Container APP from a portal or Azure cli for automation
+```
+acaGroupName=cont-land-containerapp
+acaName=cont-land-containerapp
+								  
+az containerapp show --resource-group acaGroupName \
+--name acaName --query properties.configuration.ingress.fqdn
+```
+so we will get following url
+
+```
+tpaperdelivery-app-2022111622390--dgcp1or.agreeablecoast-99a44d4d.northeurope.azurecontainerapps.io
+```
+and add internal, so it will look like
+```
+tpaperdelivery-app-2022111622390--dgcp1or.internal.agreeablecoast-99a44d4d.northeurope.azurecontainerapps.io
+```
+and add this value to DeliveryUrl environment variable file with docker url, and to container app config DeliveryUrl
+
+And please allow Insecure connections for Delivery service via ingress configuration
+![image](https://user-images.githubusercontent.com/36765741/202306805-5620b8cd-4fb1-4dba-80b7-8ce54e80dbc9.png)
+
+We should use the full path to make initial call to order API and see results
+tpaperorders-app-20221115224238--k1osno8.agreeablecoast-99a44d4d.northeurope.azurecontainerapps.io/api/order/create/1
