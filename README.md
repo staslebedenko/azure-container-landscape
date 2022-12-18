@@ -341,6 +341,8 @@ This is a quite exotic case, because usage of a container with a sidecar or seve
 
 But you should be aware about this possibilty, so you can leverage simple two service scenario as fast and easy as possible.
 
+At the moment you can safely skip this step and move to the container instances :).
+
 let's login to our container registry from a step 4 folder
 ```cmd
 az login
@@ -349,11 +351,35 @@ az account show
 az acr login --name contlandregistry
 ```
 
+We need to build, tag and push our container images to Container registry
+
+```
+docker tag tpaperorders:latest contlandregistry.azurecr.io/tpaperorders:v2
+docker images
+docker push contlandregistry.azurecr.io/tpaperorders:v2
+
+docker tag tpaperdelivery:latest contlandregistry.azurecr.io/tpaperdelivery:v2
+docker images
+docker push contlandregistry.azurecr.io/tpaperdelivery:v2
+```
+
 Not it is time to authenticat docker to your azure subscription and create context for resource group from a command line inside step 4 solution folder
 
 ```
 docker login azure
 docker context create aci instancescontext
+docker context ls
+docker context use instancescontext
+
 ```
+
 ![image](https://user-images.githubusercontent.com/36765741/208311730-3623ac6c-0265-4da0-822f-4b725a364f05.png)
 
+and after context set we can do the compose update
+
+```
+docker compose up
+```
+
+For extra details you can this refence 
+https://learn.microsoft.com/en-us/azure/container-instances/tutorial-docker-compose
