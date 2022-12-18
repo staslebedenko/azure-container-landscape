@@ -355,4 +355,5 @@ Not it is time to authenticat docker to your azure subscription and create conte
 docker login azure
 docker context create aci instancescontext
 ```
+![image](https://user-images.githubusercontent.com/36765741/208311730-3623ac6c-0265-4da0-822f-4b725a364f05.png)
 
