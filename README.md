@@ -310,3 +310,7 @@ The resource group cont-land-instances with postfix created earlier.
 ```
 az container create --resource-group cont-land-instances --name cont-land-aci --image contlandregistry.azurecr.io/tpaperorders:v1 --cpu 1 --memory 1 --registry-login-server contlandregistry.azurecr.io --registry-username 277a0a62-9fb0 --registry-password iUe44444444444444444444444a2r --ip-address Public --dns-name-label contlandregistry --ports 80
 ```
+
+As results we have our new container app deployed
+
+<img width="638" alt="image" src="https://user-images.githubusercontent.com/36765741/208309681-04de647c-118e-4c94-a9a2-134b667c0778.png">
