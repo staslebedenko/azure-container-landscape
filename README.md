@@ -419,7 +419,7 @@ Which means that we not configured secrets for our application.
 Let's do a quick fix by adding secrets to the Container App settings (KeyVault we will use later)
 ![image](https://user-images.githubusercontent.com/36765741/202296088-7dc6f0cb-538a-4e2a-a459-5151c2038a01.png)
 
-After this changes we re-deploying our application and getting another error Cannot open server 'dcc-modern-sql' requested by the login. Client with IP address
+After this changes we re-deploying our application and getting another error Cannot open server 'cont-land-sql' requested by the login. Client with IP address
 
 There is a two ways to solve this problem, the first is to use Azure Connector preview and make a direct link to database with secrets managed by KeyVault, or add IP address to exceptions. Or you can create a Container app environment with VNet from the start and use network endpoint of Azure SQL
 
@@ -554,7 +554,7 @@ secrets:
 And then deploying it to Azure via local azure CLI or portal console with file upload. Locally you should do az login first. 
 The pubsub component would be pubsubsbus, we will use it later in code.
 ```
-az containerapp env dapr-component set --resource-group dcc-modern-containerapp --name dcc-environment --dapr-component-name pubsubsbus --yaml "pubsubsbus.yaml"
+az containerapp env dapr-component set --resource-group cont-land-containerapp --name contl-environment --dapr-component-name pubsubsbus --yaml "pubsubsbus.yaml"
 ```
 
 Important thing, we are adding this DAPR component for entire environment, so it will be available for all apps, also we not included scopes at this step, something for the future.
@@ -563,7 +563,7 @@ Afterwards there is a need to put the correct Azure Service Bus connection strin
 ![image](https://user-images.githubusercontent.com/36765741/202546502-342421d4-c14f-4f2f-8118-df220f752232.png)
 
 One important this, please add the following section to your service bus connection string ";EntityPath=createdelivery"
-"Endpoint=sb://dccmodern2141.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=CGnGz1L+Jw=;EntityPath=createdelivery"
+"Endpoint=sb://contland2141.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=CGnGz1L+Jw=;EntityPath=createdelivery"
 
 Now let's add DAPR pub/sub components to our solution.
 
@@ -672,7 +672,7 @@ We will need to encode secrets with base64 via command line or online tool https
 
 You can check example conversion below
 ```
-Endpoint=sb://dccmodern3214.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=J+Jw=;EntityPath=createdelivery
+Endpoint=sb://contland.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=J+Jw=;EntityPath=createdelivery
 RcG9eQ
 ```
 
@@ -700,9 +700,9 @@ Lets start with CMD. !!!Use additional command az account set --subscription 95c
 az login
 
 az account show
-az acr login --name dccmodernregistry
-az aks get-credentials --resource-group dcc-modern-cluster --name dcc-modern-cluster
-kubectl config use-context dcc-modern-cluster
+az acr login --name contlandregistry
+az aks get-credentials --resource-group cont-land-cluster --name cont-land-cluster
+kubectl config use-context cont-land-cluster
 kubectl get all --all-namespaces
 kubectl get ds ama-logs --namespace=kube-system
 ```
@@ -726,8 +726,8 @@ docker images
 
 Lets tag our newly built container with azure container registry name and version.
 ```cmd
-docker tag tpaperorders:latest dccmodernregistry.azurecr.io/tpaperorders:v1
-docker tag tpaperdelivery:latest dccmodernregistry.azurecr.io/tpaperdelivery:v1
+docker tag tpaperorders:latest contlandregistry.azurecr.io/tpaperorders:v1
+docker tag tpaperdelivery:latest contlandregistry.azurecr.io/tpaperdelivery:v1
 ```
 
 Check results with
@@ -738,8 +738,8 @@ docker images
 
 And push images to container registry
 ```cmd
-docker push dccmodernregistry.azurecr.io/tpaperorders:v1
-docker push dccmodernregistry.azurecr.io/tpaperdelivery:v1
+docker push contlandregistry.azurecr.io/tpaperorders:v1
+docker push contlandregistry.azurecr.io/tpaperdelivery:v1
 ```
 
 Now we need to update container version in orders manifest
@@ -778,7 +778,7 @@ spec:
             - name: ASPNETCORE_URLS
               value: http://+:80
             - name: SqlPaperString
-              value: Server=tcp:dcc-modern-sql.database.windows.net,1433;Database=paperorders;User ID=FancyUser3;Encrypt=true;Connection Timeout=30;
+              value: Server=tcp:cont-land-sql.database.windows.net,1433;Database=paperorders;User ID=FancyUser3;Encrypt=true;Connection Timeout=30;
             - name: SqlPaperPassword
               valueFrom:
                 secretKeyRef:
@@ -830,7 +830,7 @@ spec:
     spec:
       containers:
         - name: tpaperdelivery
-          image: dccmodernregistry.azurecr.io/tpaperdelivery:v1
+          image: contlandregistry.azurecr.io/tpaperdelivery:v1
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -839,7 +839,7 @@ spec:
             - name: ASPNETCORE_URLS
               value: http://+:80
             - name: SqlDeliveryString
-              value: Server=tcp:dcc-modern-sql.database.windows.net,1433;Database=deliveries;User ID=FancyUser3;Encrypt=true;Connection Timeout=30;
+              value: Server=tcp:cont-land-sql.database.windows.net,1433;Database=deliveries;User ID=FancyUser3;Encrypt=true;Connection Timeout=30;
             - name: SqlPaperPassword
               valueFrom:
                 secretKeyRef:
@@ -919,15 +919,15 @@ kubectl apply -f aks_tpaperdelivery-deploy.yaml
 You can use set of commands below for quick container/publish re-deployments.
 Just change version in kubernetes manifest and commands below.
 ```cmd
-docker tag tpaperorders:latest dccmodernregistry.azurecr.io/tpaperorders:v1
+docker tag tpaperorders:latest contlandregistry.azurecr.io/tpaperorders:v1
 docker images
-docker push dccmodernregistry.azurecr.io/tpaperorders:v1
+docker push contlandregistry.azurecr.io/tpaperorders:v1
 kubectl apply -f aks_tpaperorders-deploy.yaml
 kubectl get all --all-namespaces
 
-docker tag tpaperdelivery:latest dccmodernregistry.azurecr.io/tpaperdelivery:v1
+docker tag tpaperdelivery:latest contlandregistry.azurecr.io/tpaperdelivery:v1
 docker images
-docker push dccmodernregistry.azurecr.io/tpaperdelivery:v1
+docker push contlandregistry.azurecr.io/tpaperdelivery:v1
 kubectl apply -f aks_tpaperdelivery-deploy.yaml
 kubectl get all --all-namespaces
 ```
@@ -1001,7 +1001,7 @@ Let's fix it
 There are two steps to do it via Azure Portal.
 
 Kubernetes connectivity
-* Navigate into resource group MC_dcc-modern-cluster_dcc-modern-cluster_northeurope
+* Navigate into resource group MC_cont-land-cluster_cont-land-cluster_northeurope
 * Open Virtual network there
 * Open Service endpoints and click add
 * Select Microsoft.SQL from dropdown and select aks-vnet in the next dropdown.
@@ -1026,7 +1026,7 @@ Now we can restart the order service, and if we will do kubectl describe command
 So we fixing the name in aks_tpaperorders-deploy.yaml from 
 ```
         - name: tpaperorders
-          image: dccmodernregistry.azurecr.io/tpaperorders:v1
+          image: contlandregistry.azurecr.io/tpaperorders:v1
           imagePullPolicy: Always
 ```
 And applying deployment again via cmd
@@ -1045,15 +1045,15 @@ The reason is that pubsub component in AKS have a different name in manifest, so
 Let's change pubsub component name from pubsubsbus to pubsub-super-new, change topic name from createdelivery to aksdelivery, rebuild containers in VS, tag them with version 2, change manifest and deploy everything
 
 ```cmd
-docker tag tpaperorders:latest dccmodernregistry.azurecr.io/tpaperorders:v3
+docker tag tpaperorders:latest contlandregistry.azurecr.io/tpaperorders:v3
 docker images
-docker push dccmodernregistry.azurecr.io/tpaperorders:v3
+docker push contlandregistry.azurecr.io/tpaperorders:v3
 kubectl apply -f aks_tpaperorders-deploy.yaml
 kubectl get all --all-namespaces
 
-docker tag tpaperdelivery:latest dccmodernregistry.azurecr.io/tpaperdelivery:v6
+docker tag tpaperdelivery:latest contlandregistry.azurecr.io/tpaperdelivery:v6
 docker images
-docker push dccmodernregistry.azurecr.io/tpaperdelivery:v6
+docker push contlandregistry.azurecr.io/tpaperdelivery:v6
 kubectl apply -f aks_tpaperdelivery-deploy.yaml
 kubectl get all --all-namespaces
 ```
@@ -1080,8 +1080,8 @@ In case your session to Azure or container registry is timed out, please login a
 az login
 
 az account show
-az acr login --name dccmodernregistry
-kubectl config use-context dcc-modern-cluster
+az acr login --name contlandregistry
+kubectl config use-context cont-land-cluster
 kubectl config set-context --current --namespace=tpaper
 kubectl get all
 ```
@@ -1092,15 +1092,15 @@ kubectl apply -f aks_pubsub-rabbitmq.yaml
 ```
 
 ```cmd
-docker tag tpaperorders:latest dccmodernregistry.azurecr.io/tpaperorders:v9
+docker tag tpaperorders:latest contlandregistry.azurecr.io/tpaperorders:v9
 docker images
-docker push dccmodernregistry.azurecr.io/tpaperorders:v9
+docker push contlandregistry.azurecr.io/tpaperorders:v9
 kubectl apply -f aks_tpaperorders-deploy.yaml
 kubectl get all
 
-docker tag tpaperdelivery:latest dccmodernregistry.azurecr.io/tpaperdelivery:v9
+docker tag tpaperdelivery:latest contlandregistry.azurecr.io/tpaperdelivery:v9
 docker images
-docker push dccmodernregistry.azurecr.io/tpaperdelivery:v9
+docker push contlandregistry.azurecr.io/tpaperdelivery:v9
 kubectl apply -f aks_tpaperdelivery-deploy.yaml
 kubectl get all
 ```
@@ -1125,15 +1125,15 @@ kubectl apply -f collector-config.yaml
 ```
 
 ```cmd
-docker tag tpaperorders:latest dccmodernregistry.azurecr.io/tpaperorders:v12
+docker tag tpaperorders:latest contlandregistry.azurecr.io/tpaperorders:v12
 docker images
-docker push dccmodernregistry.azurecr.io/tpaperorders:v12
+docker push contlandregistry.azurecr.io/tpaperorders:v12
 kubectl apply -f aks_tpaperorders-deploy.yaml
 kubectl get all
 
-docker tag tpaperdelivery:latest dccmodernregistry.azurecr.io/tpaperdelivery:v12
+docker tag tpaperdelivery:latest contlandregistry.azurecr.io/tpaperdelivery:v12
 docker images
-docker push dccmodernregistry.azurecr.io/tpaperdelivery:v12
+docker push contlandregistry.azurecr.io/tpaperdelivery:v12
 kubectl apply -f aks_tpaperdelivery-deploy.yaml
 kubectl get all
 ```
