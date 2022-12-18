@@ -257,3 +257,11 @@ then push container to the container registry with
 ```
 docker push contlandregistry.azurecr.io/tpaperorders:v1
 ```
+
+Check if image is in the container registry
+
+```
+az acr repository list --name contlandregistry --output table
+```
+
+Then we are moving to the creation of 
