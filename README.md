@@ -1070,3 +1070,76 @@ If you are closely following this tutorial by yourself, there is a mistake in on
 
 ! Make sure that dapr pubsub component deployed into the same namespace as services.
 ! Make sure that you changed service bus topic name in Visual Studio
+
+
+## Step 7. AKS Component switch and migration to on-premises.
+
+In case your session to Azure or container registry is timed out, please login again.
+
+```bash
+az login
+
+az account show
+az acr login --name dccmodernregistry
+kubectl config use-context dcc-modern-cluster
+kubectl config set-context --current --namespace=tpaper
+kubectl get all
+```
+
+```bash
+kubectl apply -f rabbitmq.yaml
+kubectl apply -f aks_pubsub-rabbitmq.yaml
+```
+
+```cmd
+docker tag tpaperorders:latest dccmodernregistry.azurecr.io/tpaperorders:v9
+docker images
+docker push dccmodernregistry.azurecr.io/tpaperorders:v9
+kubectl apply -f aks_tpaperorders-deploy.yaml
+kubectl get all
+
+docker tag tpaperdelivery:latest dccmodernregistry.azurecr.io/tpaperdelivery:v9
+docker images
+docker push dccmodernregistry.azurecr.io/tpaperdelivery:v9
+kubectl apply -f aks_tpaperdelivery-deploy.yaml
+kubectl get all
+```
+
+
+Also we will add Application insights instrumentation for our project
+```
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" Version="3.1.0" />
+```
+and configure it the old way with instrumentation key, you can also do this with connection string
+```
+            services.AddApplicationInsightsTelemetry("e2-7b799ab67b89");
+            services.AddApplicationInsightsKubernetesEnricher();
+```
+then we need to rebuild solution and deploy updates
+
+The section below can be used for logging outside of Azure platform
+```bash
+kubectl apply -f otel-collector-conf.yaml
+kubectl apply -f collector-config.yaml
+```
+
+```cmd
+docker tag tpaperorders:latest dccmodernregistry.azurecr.io/tpaperorders:v12
+docker images
+docker push dccmodernregistry.azurecr.io/tpaperorders:v12
+kubectl apply -f aks_tpaperorders-deploy.yaml
+kubectl get all
+
+docker tag tpaperdelivery:latest dccmodernregistry.azurecr.io/tpaperdelivery:v12
+docker images
+docker push dccmodernregistry.azurecr.io/tpaperdelivery:v12
+kubectl apply -f aks_tpaperdelivery-deploy.yaml
+kubectl get all
+```
+
+ We intentionally skipped RabbitMQ local host setup, and this activity can be done via extra task
+ By intalling and running the local container
+ ```
+ docker run -d --hostname my-rabbit --name some-rabbit rabbitmq:3
+ ```
