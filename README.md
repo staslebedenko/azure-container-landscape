@@ -234,7 +234,7 @@ Open Docker desktop => configuration => Resources => File sharing => Add your pr
 
 !! When you try to start the same solution from the new folder, you might need to stop and delete containers via docker compose.
 
-## Step 2. Azure Container instancs deploy.
+## Step 3. Azure Container instances deploy.
 
 The first thing is we need to login locally to Azure and authenticate to the newly created Azure Container Registry, build, tag and push container there.
 
@@ -314,3 +314,30 @@ az container create --resource-group cont-land-instances --name cont-land-aci --
 As results we have our new container app deployed
 
 <img width="638" alt="image" src="https://user-images.githubusercontent.com/36765741/208309681-04de647c-118e-4c94-a9a2-134b667c0778.png">
+
+You can monitor deployment of container instance with
+```
+az container show --resource-group cont-land-instances --name cont-land-aci --query instanceView.state
+```
+
+Our application is not using Application insights, so we can check logs quickly via additional command
+
+```
+az container logs --resource-group cont-land-instances --name cont-land-aci
+```
+
+This way you will see that we have an error with the url referencing the delivery controller, so we can fix it with Container App fqdn
+
+```
+            string url =
+                $"http://contlandregistry.northeurope.azurecontainer.io:80/api/delivery/create/{savedOrder.ClientId}/{savedOrder.Id}/{savedOrder.ProductCode}/{savedOrder.Quantity}";
+```
+
+Rebuild container, tag it with version 2 and deploy it again to the container apps
+
+## Step 4. Azure Container instances multi container group.
+
+This is a quite exotic case, because usage of a container with a sidecar or several services inside one container group without scale possibility is almost pointless.
+
+But you should be aware about this possibilty, so you can leverage simple two service scenario as fast and easy as possible.
+
