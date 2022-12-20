@@ -129,7 +129,7 @@ az monitor app-insights component create --resource-group $groupName --app $insi
 instrumentationKey=$(az monitor app-insights component show --resource-group $groupName --app $insightsName --query  "instrumentationKey" --output tsv)
 
 #----------------------------------------------------------------------------------
-# Azure Container Apps
+# Azure Container Instances
 #----------------------------------------------------------------------------------
 
 instancesGroupName=cont-land-instances$postfix
