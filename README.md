@@ -15,6 +15,17 @@ https://azure.microsoft.com/en-us/free/
 6. Kubectl installation https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/#install-kubectl-binary-with-curl-on-windows
 7. Good mood :)
 
+## Steps
+1. Step 1. Azure infrastructure
+2. Step 2. Local containerisation
+3. Step 3. Azure Container instances deploy
+4. Step 4. Azure Container instances multi container group
+5. Step 5. Azure Container Apps
+6. Step 6. Container Apps with DAPR
+7. Step 7. Migration to Azure Kubernetes Service and DAPR
+8. Step 8. AKS Component switch and migration to on-premises.
+
+
 ## Step 1. Azure infrastructure
 Script below should be run via Azure Portal bash console. 
 You will receive database connection strings with setx command as output of this script. Along with Application Insights key
@@ -210,15 +221,16 @@ printf "\n\nRun string below in local cmd prompt to assign secret to environment
 echo "Update open-telemetry-collector-appinsights.yaml in Step 5 End => <INSTRUMENTATION-KEY> value with:  " $instrumentationKey
 ```
 
-## Step 1. Local containerisation
+## Step 2. Local containerisation
 
 First we adding docker containerization via context menu of each project.
+
 <img width="489" alt="image" src="https://user-images.githubusercontent.com/36765741/204159578-5e72e255-928d-4b75-bd67-3b9f8a23e48f.png">
 
 Then we adding orchestration support via docker compose again to the each project
 
-
 If you decide to add storage at this step, then you should add the environment variable file to the root folder, so secrets will be shared between service for simplicity
+
 <img width="183" alt="image" src="https://user-images.githubusercontent.com/36765741/204159631-754bfbfe-7052-4e8d-a286-c71347266586.png">
 
 Then we changing order controller url for communication inside docker
@@ -227,6 +239,7 @@ Then we changing order controller url for communication inside docker
                 $"http://tpaperorders:80/api/delivery/create/{savedOrder.ClientId}/{savedOrder.Id}/{savedOrder.ProductCode}/{savedOrder.Quantity}";
 ```
 And from this point you should run solution in debug with docker compose option
+
 ![image](https://user-images.githubusercontent.com/36765741/204160258-35c356ff-931b-424c-9bac-6d261f432351.png)
 
 !! Be aware, if you have docker build exceptions in Visual studio with errors related to the File system, there is a need to configure docker desktop. 
