@@ -680,7 +680,22 @@ public async Task<IActionResult> Get(CancellationToken cts)
 }
 ```
 
-And after all this changes we can deploye and observe results in Azure.
+And after all this changes we can deploy and observe results in Azure.
+
+If you will stop fancy-delivery application from portal
+![image](https://github.com/user-attachments/assets/00a41363-efdd-4878-bb1f-d981e02912a1)
+
+
+And send more orders with(use your URL)
+https://fancy-order.orangetree-8d273e53.northeurope.azurecontainerapps.io/api/order/create/1
+
+Then you can see them waiting for subscriber in the message queue, if you click peek next messages
+![image](https://github.com/user-attachments/assets/8a6a6414-71de-4bf8-b142-0eb671c5ca43)
+
+Then after restart they will be consumed by delivery app
+
+
+
 
 
 ## Step 7. Migration to Azure Kubernetes Service and DAPR
