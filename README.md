@@ -578,6 +578,10 @@ Afterwards there is a need to put the correct Azure Service Bus connection strin
 One important this, please add the following section to your service bus connection string ";EntityPath=createdelivery"
 "Endpoint=sb://contland2141.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=CGnGz1L+Jw=;EntityPath=createdelivery"
 
+Another important point is that ACA is still Kubernetes, so there are no direct usage of reference, but link to that secret via metadata
+![image](https://github.com/user-attachments/assets/f1683ad8-60c9-4881-9784-e1ff5b4e4a27)
+
+
 Now let's add DAPR pub/sub components to our solution.
 
 Change CreateDeliveryForOrder in TPaperOrders project to the following code that uses DAPR pubsub
