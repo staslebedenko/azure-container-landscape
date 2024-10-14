@@ -465,6 +465,8 @@ and add this value to DeliveryUrl environment variable file with docker url, and
 And please allow Insecure connections for Delivery service via ingress configuration
 ![image](https://user-images.githubusercontent.com/36765741/202306805-5620b8cd-4fb1-4dba-80b7-8ce54e80dbc9.png)
 
+
+
 We should use the full path to make initial call to order API and see results
 tpaperorders-app-20221115224238--k1osno8.agreeablecoast-99a44d4d.northeurope.azurecontainerapps.io/api/order/create/1
 
@@ -580,6 +582,11 @@ One important this, please add the following section to your service bus connect
 
 Another important point is that ACA is still Kubernetes, so there are no direct usage of reference, but link to that secret via metadata
 ![image](https://github.com/user-attachments/assets/f1683ad8-60c9-4881-9784-e1ff5b4e4a27)
+
+Now after we enabled configuration for Container Environmnent, we need to setup DAPR sidecar for application using parameters from compose - AppID and port
+![image](https://github.com/user-attachments/assets/99a7bd94-0971-498c-89c7-9a00ce74932f)
+
+![image](https://github.com/user-attachments/assets/88217ab1-ce54-449a-8d35-021bb38f4d8f)
 
 
 Now let's add DAPR pub/sub components to our solution.
